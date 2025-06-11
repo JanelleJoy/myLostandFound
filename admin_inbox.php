@@ -25,66 +25,121 @@ $stmt->close();
 <head>
     <meta charset="UTF-8">
     <title>Admin Inbox</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f8f9fa;
-            margin: 0;
-            padding: 40px;
+        * {
+            box-sizing: border-box;
         }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: transparent;
+        }
+
+        .background-blur {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('rmmc.png') no-repeat center center fixed;
+            background-size: cover;
+            filter: blur(14px);
+            z-index: -1;
+        }
+
         .container {
             max-width: 900px;
-            margin: auto;
-            background: #fff;
-            border-radius: 10px;
+            margin: 60px auto;
             padding: 30px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(8px);
         }
+
         .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
         }
+
+        h2 {
+            margin: 0;
+            font-weight: 600;
+            color: #007bff;
+        }
+
         .new-message-btn {
             background-color: #007bff;
             color: white;
-            padding: 10px 16px;
+            padding: 10px 18px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
             text-decoration: none;
-            font-weight: bold;
+            transition: background-color 0.3s ease;
         }
+
         .new-message-btn:hover {
             background-color: #0056b3;
         }
+
+        .top-bar a.back-link {
+            text-decoration: none;
+            color: #007bff;
+            margin-left: 10px;
+            font-weight: 500;
+        }
+
+        .top-bar a.back-link:hover {
+            text-decoration: underline;
+        }
+
         ul {
             list-style: none;
             padding: 0;
-            margin-top: 20px;
+            margin-top: 30px;
         }
+
         li {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background-color: #f1f5ff;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
         }
-        a {
-            color: #007bff;
+
+        li:hover {
+            background-color: #e0eaff;
+        }
+
+        a.contact-link {
             text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            display: block;
         }
-        a:hover {
-            text-decoration: underline;
-        }
+
         .no-messages {
-            color: #888;
+            color: #666;
             font-style: italic;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
+<div class="background-blur"></div>
+
 <div class="container">
     <div class="top-bar">
         <h2>📨 Admin Conversations</h2>
-        <p><a href="admin_dashboard.php">Back Dashboard</a></p>
+                    <a href="admin_dashboard.php" class="back-link">← Back to Dashboard</a>
 
-        <a class="new-message-btn" href="admin_create_message.php">➕ New Message</a>
+        <div>
+            <a class="new-message-btn" href="admin_create_message.php">➕ New Message</a>
+        </div>
     </div>
 
     <ul>
@@ -93,7 +148,7 @@ $stmt->close();
         <?php else: ?>
             <?php while ($row = $contacts_result->fetch_assoc()): ?>
                 <li>
-                    <a href="admin_chat.php?with=<?= urlencode($row['contact']) ?>">
+                    <a class="contact-link" href="admin_chat.php?with=<?= urlencode($row['contact']) ?>">
                         <?= htmlspecialchars($row['contact']) ?>
                     </a>
                 </li>

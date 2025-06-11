@@ -9,7 +9,6 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
 
 $admin_email = $_SESSION['username'];
 $error = '';
-$success = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $receiver_email = trim($_POST['receiver_email']);
@@ -33,56 +32,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>New Message</title>
+    <title>Send New Message</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f8f9fa;
-            margin: 0;
-            padding: 40px;
+        * {
+            box-sizing: border-box;
         }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: transparent;
+        }
+
+        .background-blur {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('rmmc.png') no-repeat center center fixed;
+            background-size: cover;
+            filter: blur(14px);
+            z-index: -1;
+        }
+
         .container {
             max-width: 600px;
-            margin: auto;
-            background: #fff;
-            border-radius: 10px;
+            margin: 80px auto;
             padding: 30px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
         }
+
         h2 {
+            margin-bottom: 25px;
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
             margin-bottom: 20px;
         }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
         input, textarea {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
             border: 1px solid #ccc;
+            font-family: inherit;
+            font-size: 14px;
         }
+
         button {
             background-color: #007bff;
             color: white;
-            padding: 10px 16px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         .error {
             color: #d8000c;
             background-color: #ffdddd;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
+<div class="background-blur"></div>
+
 <div class="container">
     <h2>📨 Send New Message</h2>
+    <a href="admin_inbox.php">← Back to Inbox</a>
 
     <?php if ($error): ?>
         <div class="error"><?= htmlspecialchars($error) ?></div>
@@ -93,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="email" name="receiver_email" id="receiver_email" required>
 
         <label for="message">Message</label>
-        <textarea name="message" id="message" rows="5" required></textarea>
+        <textarea name="message" id="message" rows="6" required></textarea>
 
         <button type="submit">Send</button>
     </form>

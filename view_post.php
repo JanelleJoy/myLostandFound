@@ -107,20 +107,141 @@ $stmt_reports->close();
 <meta charset="UTF-8" />
 <title>View Post #<?= htmlspecialchars($post_id) ?></title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-  h1 { margin-bottom: 20px; }
-  .post-container { background: white; padding: 20px; border-radius: 6px; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
-  .field-label { font-weight: bold; margin-top: 10px; }
-  a { color: #007bff; text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  form { margin-top: 20px; }
-  button { padding: 10px 20px; margin-right: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
-  .btn-resolve { background-color: #28a745; color: white; }
-  .btn-delete { background-color: #dc3545; color: white; }
-  table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
-  th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-  th { background-color: #f2f2f2; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 40px;
+    background: none;
+    position: relative;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('rmmc.png') no-repeat center center fixed;
+    background-size: cover;
+    filter: blur(10px);
+    transform: scale(1.05);
+    z-index: -1;
+  }
+
+  h1, h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  a {
+    color: #0d6efd;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  .post-container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    margin-bottom: 30px;
+  }
+
+  .field-label {
+    font-weight: 600;
+    color: #555;
+    display: inline-block;
+    min-width: 120px;
+    margin-top: 10px;
+  }
+
+  p {
+    margin-top: 10px;
+    color: #444;
+  }
+
+  img {
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+  }
+
+  th, td {
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f1f1f1;
+    color: #333;
+    font-weight: 600;
+    border-bottom: 2px solid #e0e0e0;
+  }
+
+  td {
+    border-bottom: 1px solid #f0f0f0;
+    color: #444;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  tbody tr:hover {
+    background-color: #eef5ff;
+    transition: background-color 0.3s ease;
+  }
+
+  form {
+    margin-top: 20px;
+  }
+
+  button {
+    padding: 12px 24px;
+    margin-right: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-resolve {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-resolve:hover {
+    background-color: #218838;
+  }
+
+  .btn-delete {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-delete:hover {
+    background-color: #c82333;
+  }
+  
 </style>
+
 </head>
 <body>
 

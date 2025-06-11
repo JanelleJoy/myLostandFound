@@ -2,7 +2,6 @@
 session_start();
 require_once 'connect.php';
 
-// Check if user is admin
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     header("Location: index.php");
     exit();
@@ -10,12 +9,12 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
 
 $admin_email = $_SESSION['username'];
 $selected_user = $_GET['with'] ?? null;
-$message_sent = false;
 $error = '';
+$message_sent = false;
 
-// Send message handler
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['receiver_email'], $_POST['message'])) {
-    $receiver_email = $_POST['receiver_email'];
+    $receiver_email = trim($_POST['receiver_email']);
     $message = trim($_POST['message']);
 
     if ($message === '') {
@@ -26,31 +25,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['receiver_email'], $_P
         $stmt->execute();
         $stmt->close();
 
-        $message_sent = true;
-        $selected_user = $receiver_email;
+        header("Location: admin_message.php?with=" . urlencode($receiver_email) . "&sent=1");
+        exit();
     }
 }
 
-// Fetch all distinct users who have messaged or been messaged by admin
-$stmt = $conn->prepare("
-    SELECT DISTINCT IF(sender_email = ?, receiver_email, sender_email) AS contact
-    FROM messages
-    WHERE sender_email = ? OR receiver_email = ?
-    ORDER BY timestamp DESC
-");
-$stmt->bind_param("sss", $admin_email, $admin_email, $admin_email);
-$stmt->execute();
-$contacts_result = $stmt->get_result();
-$stmt->close();
-
-// Fetch chat messages if user selected
+// Fetch conversation
 $chat_messages = [];
 if ($selected_user) {
     $stmt = $conn->prepare("
-        SELECT sender_email, receiver_email, message, timestamp
-        FROM messages
-        WHERE (sender_email = ? AND receiver_email = ?)
-           OR (sender_email = ? AND receiver_email = ?)
+        SELECT sender_email, receiver_email, message, timestamp 
+        FROM messages 
+        WHERE (sender_email = ? AND receiver_email = ?) 
+           OR (sender_email = ? AND receiver_email = ?) 
         ORDER BY timestamp ASC
     ");
     $stmt->bind_param("ssss", $admin_email, $selected_user, $selected_user, $admin_email);
@@ -61,204 +48,145 @@ if ($selected_user) {
     }
     $stmt->close();
 
-    // Mark messages from user as read
+    // Mark as read
     $stmt = $conn->prepare("UPDATE messages SET is_read = 1 WHERE sender_email = ? AND receiver_email = ?");
     $stmt->bind_param("ss", $selected_user, $admin_email);
     $stmt->execute();
     $stmt->close();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Admin Messages</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f4f6f9;
-        padding: 30px;
-    }
-    .container {
-        max-width: 900px;
-        margin: auto;
-        background: white;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
-        display: flex;
-        gap: 20px;
-    }
-    .contacts {
-        width: 250px;
-        border-right: 1px solid #ddd;
-        overflow-y: auto;
-        max-height: 600px;
-    }
-    .contacts h2 {
-        margin-top: 0;
-        font-size: 1.2em;
-    }
-    .contacts ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    .contacts li {
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-    }
-    .contacts a {
-        text-decoration: none;
-        color: #007bff;
-        display: block;
-    }
-    .contacts a.selected {
-        font-weight: bold;
-        background-color: #e9ecef;
-        border-radius: 4px;
-        padding-left: 8px;
-    }
-    .chat {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        max-height: 600px;
-    }
-    .chat-header {
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-    .messages {
-        flex-grow: 1;
-        overflow-y: auto;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        padding: 15px;
-        background: #f9f9f9;
-        margin-bottom: 15px;
-    }
-    .message {
-        margin-bottom: 10px;
-        max-width: 70%;
-        padding: 8px 12px;
-        border-radius: 15px;
-        clear: both;
-    }
-    .message.admin {
-        background: #007bff;
-        color: white;
-        float: right;
-        text-align: right;
-    }
-    .message.user {
-        background: #e2e3e5;
-        color: #333;
-        float: left;
-        text-align: left;
-    }
-    .timestamp {
-        font-size: 0.7em;
-        color: #666;
-        margin-top: 2px;
-    }
-    form textarea {
-        width: 100%;
-        height: 70px;
-        padding: 10px;
-        resize: vertical;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        font-size: 14px;
-    }
-    form button {
-        background: #007bff;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
-        margin-top: 8px;
-        float: right;
-    }
-    form button:hover {
-        background: #0056b3;
-    }
-    .error {
-        color: red;
-        margin-bottom: 10px;
-    }
-    .message-sent {
-        color: green;
-        margin-bottom: 10px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <title>Admin Chat</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 40px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-bar a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .messages {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+        }
+        .message {
+            max-width: 70%;
+            margin-bottom: 15px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            position: relative;
+            clear: both;
+        }
+        .admin {
+            background-color: #007bff;
+            color: white;
+            float: right;
+            text-align: right;
+        }
+        .user {
+            background-color: #e2e3e5;
+            float: left;
+        }
+        .timestamp {
+            font-size: 0.75em;
+            color: #555;
+            margin-top: 5px;
+        }
+        form textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            resize: vertical;
+            font-size: 14px;
+            border: 1px solid #ccc;
+        }
+        form button {
+            margin-top: 10px;
+            float: right;
+            padding: 10px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-bottom: 15px;
+        }
+        .success {
+            color: green;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="contacts">
-        <h2>Users</h2>
-        <ul>
-            <?php if ($contacts_result->num_rows === 0): ?>
-                <li>No conversations yet.</li>
-            <?php else: ?>
-                <?php while ($contact = $contacts_result->fetch_assoc()): ?>
-                    <li>
-                        <a href="?with=<?= urlencode($contact['contact']) ?>"
-                           class="<?= ($selected_user === $contact['contact']) ? 'selected' : '' ?>">
-                           <?= htmlspecialchars($contact['contact']) ?>
-                        </a>
-                    </li>
-                <?php endwhile; ?>
-            <?php endif; ?>
-        </ul>
+    <div class="top-bar">
+        <a href="admin_inbox.php">← Back to Inbox</a>
+        <h2>Chat with <?= htmlspecialchars($selected_user ?? '...') ?></h2>
     </div>
 
-    <div class="chat">
-        <?php if ($selected_user): ?>
-            <div class="chat-header">
-                Chat with <?= htmlspecialchars($selected_user) ?>
-            </div>
+    <?php if (isset($_GET['sent'])): ?>
+        <div class="success">✅ Message sent successfully!</div>
+    <?php endif; ?>
 
-            <div class="messages" id="messages">
-                <?php if (empty($chat_messages)): ?>
-                    <p>No messages yet.</p>
-                <?php else: ?>
-                    <?php foreach ($chat_messages as $msg): ?>
-                        <div class="message <?= ($msg['sender_email'] === $admin_email) ? 'admin' : 'user' ?>">
-                            <?= nl2br(htmlspecialchars($msg['message'])) ?>
-                            <div class="timestamp"><?= htmlspecialchars($msg['timestamp']) ?></div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
+    <?php if ($error): ?>
+        <div class="error"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
-            <form method="POST" action="admin_message.php?with=<?= urlencode($selected_user) ?>">
-                <input type="hidden" name="receiver_email" value="<?= htmlspecialchars($selected_user) ?>" />
-                <?php if ($error): ?>
-                    <div class="error"><?= htmlspecialchars($error) ?></div>
-                <?php elseif ($message_sent): ?>
-                    <div class="message-sent">Message sent!</div>
-                <?php endif; ?>
-                <textarea name="message" placeholder="Type your message..." required></textarea>
-                <button type="submit">Send</button>
-            </form>
+    <div class="messages" id="chat-box">
+        <?php if (empty($chat_messages)): ?>
+            <p>No messages yet.</p>
         <?php else: ?>
-            <p>Select a user from the left to start chatting.</p>
+            <?php foreach ($chat_messages as $msg): ?>
+                <div class="message <?= ($msg['sender_email'] === $admin_email) ? 'admin' : 'user' ?>">
+                    <?= nl2br(htmlspecialchars($msg['message'])) ?>
+                    <div class="timestamp"><?= htmlspecialchars($msg['timestamp']) ?></div>
+                </div>
+            <?php endforeach; ?>
         <?php endif; ?>
     </div>
+
+    <form method="POST" action="admin_message.php?with=<?= urlencode($selected_user) ?>">
+        <input type="hidden" name="receiver_email" value="<?= htmlspecialchars($selected_user) ?>">
+        <textarea name="message" placeholder="Type your message..." required></textarea>
+        <button type="submit">Send</button>
+    </form>
 </div>
 
 <script>
-// Scroll chat messages to bottom on page load
-const messagesDiv = document.getElementById('messages');
-if (messagesDiv) {
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
+// Auto-scroll to bottom
+const chatBox = document.getElementById('chat-box');
+if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 </script>
-
 </body>
 </html>
